@@ -1,6 +1,9 @@
 import { io } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
 
-const socket = io('https://7d49j92o118l.share.zrok.io');
+const socket = io('https://7d49j92o118l.share.zrok.io', {
+    withCredentials: false,
+    transports: ["polling", "websocket"]  
+});
 const trackpad = document.querySelector(".trackpad");
 
 let startX = [];
