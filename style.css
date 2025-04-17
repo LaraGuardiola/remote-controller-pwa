@@ -1,0 +1,234 @@
+:root {
+    --main-bg: #313338;
+    --trackpad-bg: #1e1f22;
+    --blue-btn: #5865f2;
+    --blue-btn-hover: #4752c4;
+    --red-btn: #ed4245;
+    --red-btn-hover: #c03538;
+    --green-btn: #3ba55c;
+    --green-btn-hover: #2d8a49;
+    --text-color: #ffffff;
+    --menu-bg: #2b2d31;
+    --border-color: #696f7a;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Courier New', monospace;
+    user-select: none;
+}
+
+body {
+    background-color: var(--main-bg);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.container {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: var(--menu-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    image-rendering: pixelated;
+}
+
+.header h1 {
+    font-size: 18px;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-left: 5px;
+}
+
+.header h1::before {
+    content: "◢◤";
+    margin-right: 6px;
+    color: var(--blue-btn);
+}
+
+.menu-toggle {
+    background-color: var(--blue-btn);
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    padding: 4px 8px;
+    cursor: pointer;
+    outline: none;
+    image-rendering: pixelated;
+    text-transform: uppercase;
+}
+
+.menu-toggle:active {
+    transform: translateY(2px);
+}
+
+.menu-panel {
+    background-color: var(--menu-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-out;
+    image-rendering: pixelated;
+}
+
+.menu-panel.active {
+    max-height: 500px;
+}
+
+.section {
+    margin-bottom: 10px;
+}
+
+.section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 10px;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--blue-btn);
+    color: white;
+    height: 40px;
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    image-rendering: pixelated;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.action-button::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.1),
+        transparent 50%,
+        transparent 80%,
+        rgba(0, 0, 0, 0.1)
+    );
+}
+
+.action-button:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0;
+}
+
+.action-button.red {
+    background-color: var(--red-btn);
+}
+
+.action-button.green {
+    background-color: var(--green-btn);
+}
+
+.action-button i {
+    margin-right: 4px;
+}
+
+.trackpad {
+    flex: 1;
+    background-color: var(--trackpad-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    position: relative;
+    image-rendering: pixelated;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    touch-action: none;
+}
+
+.trackpad::before {
+    content: "";
+    position: absolute;
+    width: 98%;
+    height: 98%;
+    border-radius: 6px;
+    box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.05);
+}
+
+.mouse-buttons {
+    position: absolute;
+    bottom: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.mouse-btn {
+    background-color: var(--blue-btn);
+    width: 60px;
+    height: 30px;
+    border: 2px solid #ffffff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    image-rendering: pixelated;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.mouse-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0;
+}
+
+.trackpad-label {
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    pointer-events: none;
+}
+
+@media (max-height: 600px) {
+    .action-button {
+        height: 36px;
+        font-size: 12px;
+    }
+}

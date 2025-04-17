@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+    <script type ="module" src="app.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4285f4">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black">
+    <meta name="mobile-web-app-title" content="Remote Control">
+    <link rel="touch-icon" href="icons/remote-control-icon.svg">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Remote Control</h1>
+            <button class="menu-toggle" id="menuToggle">Menu</button>
+        </div>
+        
+        <div class="menu-panel" id="menuPanel">
+            <div class="section">
+                <div class="section-title">Media</div>
+                <div class="button-grid">                   
+                    <button class="action-button" data-action="next-track">Next</button>
+                    <button class="action-button" data-action="play-pause">Play/Pause</button>
+                    <button class="action-button" data-action="volume-up">Volume +</button>
+                    <button class="action-button" data-action="prev-track">Previous</button>
+                    <button class="action-button" data-action="mute">Mute</button>                   
+                    <button class="action-button" data-action="volume-down">Volume -</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">System</div>
+                <div class="button-grid">
+                    <button class="action-button" data-action="lock">Lock</button>
+                    <button class="action-button red" data-action="sleep">Sleep</button>
+                    <button class="action-button red" data-action="shutdown">Shutdown</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="trackpad" id="trackpad">
+            <div class="trackpad-label">TRACKPAD</div>
+        </div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Error registering Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+    "name": "Remote Controller PWA",
+    "short_name": "Remote",
+    "description": "Remote Controller in the same local network",
+    "start_url": "index.html",
+    "display": "fullscreen",
+    "background_color": "#ffffff",
+    "theme_color": "#4285f4",
+    "icons": [
+        {
+            "src": "icons/remote-control-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ],
+    "screenshots": [
+    {
+      "src": "screenshots/mobile.png",
+      "sizes": "780x1687",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/desktop.png",
+      "sizes": "2560x1600",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}
