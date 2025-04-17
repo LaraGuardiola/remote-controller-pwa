@@ -1,6 +1,6 @@
 import { io } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
 
-const socket = io("https://192.168.1.38:3000");
+const socket = io("https://6daopfnx7dj4.share.zrok.io/");
 const trackpad = document.querySelector(".trackpad");
 
 let startX = [];
