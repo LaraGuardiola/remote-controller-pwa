@@ -50,7 +50,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                navigator.serviceWorker.register('https://laraguardiola.github.io/remote-controller-pwa/service-worker.js')
                     .then((registration) => {
                         console.log('Service Worker registered successfully:', registration.scope);
                     })
