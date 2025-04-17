@@ -1,14 +1,12 @@
-import { io } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
+const wsURL = 'wss://k15pwhppj0xf.share.zrok.io';
 
-const socket = io('https://7d49j92o118l.share.zrok.io', {
-    withCredentials: false,
-    transports: ["polling", "websocket"]  
-});
+let ws = new WebSocket(wsURL);
 const trackpad = document.querySelector(".trackpad");
 
 let startX = [];
 let startY = [];
 let moved = false;
+let isConnected = false;
 const moveThreshold = 0.1;
 let clickPossible = false;
 const clickDelay = 50;
@@ -19,19 +17,56 @@ const longPressDuration = 500;
 let isDragging = false;
 let isTwoFingerGesture = false;
 
-const sendDimensions = () => {
-    socket.emit("dimensions", {
-        width: trackpad.clientWidth,
-        height: trackpad.clientHeight
-    });
+// Intentar reconectar si se pierde la conexión
+function setupWebSocket() {
+    ws = new WebSocket(wsURL);
+    
+    ws.onopen = () => {
+        console.log("Conectado al servidor WebSocket");
+        isConnected = true;
+        sendDimensions();
+    };
+    
+    ws.onclose = () => {
+        console.log("Desconectado del servidor WebSocket");
+        isConnected = false;
+        // Intentar reconectar después de 3 segundos
+        setTimeout(setupWebSocket, 3000);
+    };
+    
+    ws.onerror = (error) => {
+        console.error("Error en WebSocket:", error);
+    };
+    
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            console.log("Mensaje recibido:", data);
+            // Manejar mensajes del servidor si es necesario
+        } catch (e) {
+            console.error("Error al procesar mensaje:", e);
+        }
+    };
 }
 
-socket.on("connect", () => {
-    console.log(socket.id);
-    sendDimensions();
-});
+// Iniciar la conexión WebSocket
+setupWebSocket();
+
+const sendDimensions = () => {
+    if (isConnected) {
+        ws.send(JSON.stringify({
+            type: "dimensions",
+            payload: {
+                width: trackpad.clientWidth,
+                height: trackpad.clientHeight
+            }
+        }));
+    }
+};
 
 const handleTouchMove = (e) => {
+    if (!isConnected) return;
+    
     if (e.touches.length > 1) {
         isTwoFingerGesture = true;
 
@@ -81,38 +116,58 @@ const handleTouchMove = (e) => {
     }
 
     if (isDragging) {
-        socket.emit("drag", deltaX, deltaY);
+        ws.send(JSON.stringify({
+            type: "drag",
+            payload: { deltaX, deltaY }
+        }));
     } else {
-        socket.emit("movement", deltaX, deltaY);
+        ws.send(JSON.stringify({
+            type: "movement",
+            payload: { deltaX, deltaY }
+        }));
     }
 
     startX[0] = currentX;
     startY[0] = currentY;
-}
+};
 
 const handleTouchClick = (e) => {
-    socket.emit("click", "left");
-}
+    if (isConnected) {
+        ws.send(JSON.stringify({
+            type: "click",
+            payload: { button: "left" }
+        }));
+    }
+};
 
 const handleTwoFingerTouchEnd = (e) => {
-    if (twoFingerTouchStart && e.touches.length === 0 && !moved) {
-        socket.emit("click", "right");
+    if (twoFingerTouchStart && e.touches.length === 0 && !moved && isConnected) {
+        ws.send(JSON.stringify({
+            type: "click",
+            payload: { button: "right" }
+        }));
     }
     twoFingerTouchStart = false;
     isTwoFingerGesture = false;
 };
 
 const startDragMode = () => {
-    isDragging = true;
-    socket.emit("dragStart");
-}
+    if (isConnected) {
+        isDragging = true;
+        ws.send(JSON.stringify({
+            type: "dragStart"
+        }));
+    }
+};
 
 const endDragMode = () => {
-    if (isDragging) {
-        socket.emit("dragEnd");
+    if (isDragging && isConnected) {
+        ws.send(JSON.stringify({
+            type: "dragEnd"
+        }));
         isDragging = false;
     }
-}
+};
 
 const throttle = (callback, delay) => {
     let lastCall = 0;
@@ -123,12 +178,14 @@ const throttle = (callback, delay) => {
             callback(...args);
         }
     };
-}
+};
 
 const throttledMove = throttle(handleTouchMove, 16);
 
 document.querySelectorAll('.action-button').forEach(button => {
     button.addEventListener('click', function () {
+        if (!isConnected) return;
+        
         const action = this.getAttribute('data-action');
 
         if (action === 'shutdown' || action === 'sleep') {
@@ -137,7 +194,10 @@ document.querySelectorAll('.action-button').forEach(button => {
             }
         }
 
-        socket.emit('media', action);
+        ws.send(JSON.stringify({
+            type: "media",
+            payload: { command: action }
+        }));
 
         this.classList.add('active');
         setTimeout(() => {
@@ -212,6 +272,7 @@ trackpad.addEventListener("touchend", (e) => {
 });
 
 window.addEventListener("orientationchange", sendDimensions);
+window.addEventListener("resize", sendDimensions);
 
 document.addEventListener('DOMContentLoaded', function() {
     const menuToggle = document.getElementById('menuToggle');
@@ -220,4 +281,9 @@ document.addEventListener('DOMContentLoaded', function() {
     menuToggle.addEventListener('click', function() {
         menuPanel.classList.toggle('active');
     });
+    
+    // Enviar dimensiones cuando se carga la página
+    if (trackpad) {
+        setTimeout(sendDimensions, 500);
+    }
 });
