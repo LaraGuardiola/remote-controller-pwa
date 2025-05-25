@@ -12,6 +12,7 @@
     <meta name="mobile-web-app-status-bar-style" content="black">
     <meta name="mobile-web-app-title" content="Remote Control">
     <link rel="touch-icon" href="icons/remote-control-icon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <div class="container">
@@ -41,16 +42,30 @@
                     <button class="action-button red" data-action="shutdown">Shutdown</button>
                 </div>
             </div>
+
+            <div class="section">
+                <div class="section-title">Utilities</div>
+                <div class="button-grid"> 
+                    <button class="action-button" data-action="copy">Copy</button>
+                    <button class="action-button" data-action="undo">Undo</button>
+                    <button class="action-button green" data-action="task-manager">Task mgr</button>
+                    <button class="action-button" data-action="paste">Paste</button>
+                    <button class="action-button" data-action="redo">Redo</button>
+                    <button class="action-button rl" data-action="rocket-league"><img src="images/rocket-league.svg" alt="" srcset=""></button>
+                </div>
+            </div>
         </div>
+        
         
         <div class="trackpad" id="trackpad">
             <div class="trackpad-label">TRACKPAD</div>
         </div>
+        <button class="circle"><i class="fa-solid fa-keyboard"></i></button>
     </div>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('https://laraguardiola.github.io/remote-controller-pwa/service-worker.js')
+                navigator.serviceWorker.register('/service-worker.js')
                     .then((registration) => {
                         console.log('Service Worker registered successfully:', registration.scope);
                     })

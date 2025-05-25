@@ -23,7 +23,7 @@
 body {
     background-color: var(--main-bg);
     color: var(--text-color);
-    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -34,7 +34,7 @@ body {
     width: 100%;
     margin: 0 auto;
     padding: 10px;
-    height: 100dvh;
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -142,12 +142,10 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(
-        rgba(255, 255, 255, 0.1),
-        transparent 50%,
-        transparent 80%,
-        rgba(0, 0, 0, 0.1)
-    );
+    background: linear-gradient(rgba(255, 255, 255, 0.1),
+            transparent 50%,
+            transparent 80%,
+            rgba(0, 0, 0, 0.1));
 }
 
 .action-button:active {
@@ -167,6 +165,10 @@ body {
     margin-right: 4px;
 }
 
+.action-button.rl {
+    padding: 5px;
+}
+
 .trackpad {
     flex: 1;
     background-color: var(--trackpad-bg);
@@ -179,6 +181,7 @@ body {
     justify-content: center;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
     touch-action: none;
+    overflow-y: auto;
 }
 
 .trackpad::before {
@@ -224,6 +227,25 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     pointer-events: none;
+}
+
+.circle {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 30px;
+    background-color: var(--blue-btn);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.circle:active {
+    bottom: 18px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 @media (max-height: 600px) {

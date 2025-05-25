@@ -1,12 +1,11 @@
-const wsURL = 'wss://192.168.1.35:3443';
+import { io } from "https://cdn.socket.io/4.8.1/socket.io.esm.min.js";
 
-let ws = new WebSocket(wsURL);
+const socket = io('wss://remote.share.zrok.io');
 const trackpad = document.querySelector(".trackpad");
 
 let startX = [];
 let startY = [];
 let moved = false;
-let isConnected = false;
 const moveThreshold = 0.1;
 let clickPossible = false;
 const clickDelay = 50;
@@ -17,56 +16,19 @@ const longPressDuration = 500;
 let isDragging = false;
 let isTwoFingerGesture = false;
 
-// Intentar reconectar si se pierde la conexión
-function setupWebSocket() {
-    ws = new WebSocket(wsURL);
-    
-    ws.onopen = () => {
-        console.log("Conectado al servidor WebSocket");
-        isConnected = true;
-        sendDimensions();
-    };
-    
-    ws.onclose = () => {
-        console.log("Desconectado del servidor WebSocket");
-        isConnected = false;
-        // Intentar reconectar después de 3 segundos
-        setTimeout(setupWebSocket, 3000);
-    };
-    
-    ws.onerror = (error) => {
-        console.error("Error en WebSocket:", error);
-    };
-    
-    ws.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            console.log("Mensaje recibido:", data);
-            // Manejar mensajes del servidor si es necesario
-        } catch (e) {
-            console.error("Error al procesar mensaje:", e);
-        }
-    };
+const sendDimensions = () => {
+    socket.emit("dimensions", {
+        width: trackpad.clientWidth,
+        height: trackpad.clientHeight
+    });
 }
 
-// Iniciar la conexión WebSocket
-setupWebSocket();
-
-const sendDimensions = () => {
-    if (isConnected) {
-        ws.send(JSON.stringify({
-            type: "dimensions",
-            payload: {
-                width: trackpad.clientWidth,
-                height: trackpad.clientHeight
-            }
-        }));
-    }
-};
+socket.on("connect", () => {
+    console.log(socket.id);
+    sendDimensions();
+});
 
 const handleTouchMove = (e) => {
-    if (!isConnected) return;
-    
     if (e.touches.length > 1) {
         isTwoFingerGesture = true;
 
@@ -101,8 +63,8 @@ const handleTouchMove = (e) => {
     const currentX = touch.clientX - trackpad.offsetLeft;
     const currentY = touch.clientY - trackpad.offsetTop;
 
-    const deltaX = currentX - startX[0];
-    const deltaY = currentY - startY[0];
+    const deltaX = +(currentX - startX[0]).toFixed(3);
+    const deltaY = +(currentY - startY[0]).toFixed(3);
 
     if (Math.abs(deltaX) > moveThreshold || Math.abs(deltaY) > moveThreshold) {
         moved = true;
@@ -116,58 +78,41 @@ const handleTouchMove = (e) => {
     }
 
     if (isDragging) {
-        ws.send(JSON.stringify({
-            type: "drag",
-            payload: { deltaX, deltaY }
-        }));
+        socket.emit("drag", deltaX, deltaY);
     } else {
-        ws.send(JSON.stringify({
-            type: "movement",
-            payload: { deltaX, deltaY }
-        }));
+        socket.emit("movement", deltaX, deltaY);
     }
 
     startX[0] = currentX;
     startY[0] = currentY;
-};
+}
 
 const handleTouchClick = (e) => {
-    if (isConnected) {
-        ws.send(JSON.stringify({
-            type: "click",
-            payload: { button: "left" }
-        }));
-    }
-};
+    socket.emit("click", "left");
+}
 
 const handleTwoFingerTouchEnd = (e) => {
-    if (twoFingerTouchStart && e.touches.length === 0 && !moved && isConnected) {
-        ws.send(JSON.stringify({
-            type: "click",
-            payload: { button: "right" }
-        }));
+    if (twoFingerTouchStart && e.touches.length === 0 && !moved) {
+        socket.emit("click", "right");
     }
     twoFingerTouchStart = false;
     isTwoFingerGesture = false;
 };
 
 const startDragMode = () => {
-    if (isConnected) {
-        isDragging = true;
-        ws.send(JSON.stringify({
-            type: "dragStart"
-        }));
+    isDragging = true;
+    if ("vibrate" in navigator) {
+        navigator.vibrate(100);
     }
-};
+    socket.emit("dragStart");
+}
 
 const endDragMode = () => {
-    if (isDragging && isConnected) {
-        ws.send(JSON.stringify({
-            type: "dragEnd"
-        }));
+    if (isDragging) {
+        socket.emit("dragEnd");
         isDragging = false;
     }
-};
+}
 
 const throttle = (callback, delay) => {
     let lastCall = 0;
@@ -178,14 +123,12 @@ const throttle = (callback, delay) => {
             callback(...args);
         }
     };
-};
+}
 
-const throttledMove = throttle(handleTouchMove, 16);
+const throttledMove = throttle(handleTouchMove, 8);
 
 document.querySelectorAll('.action-button').forEach(button => {
     button.addEventListener('click', function () {
-        if (!isConnected) return;
-        
         const action = this.getAttribute('data-action');
 
         if (action === 'shutdown' || action === 'sleep') {
@@ -194,10 +137,7 @@ document.querySelectorAll('.action-button').forEach(button => {
             }
         }
 
-        ws.send(JSON.stringify({
-            type: "media",
-            payload: { command: action }
-        }));
+        socket.emit('media', action);
 
         this.classList.add('active');
         setTimeout(() => {
@@ -213,6 +153,13 @@ trackpad.addEventListener("touchmove", (e) => {
 
 trackpad.addEventListener("touchstart", (e) => {
     e.preventDefault();
+
+    // otherwise the keyboard input will be focused
+    const keyboardInput = document.querySelector('.keyboard-input');
+    if (keyboardInput && document.activeElement === keyboardInput) {
+        keyboardInput.blur(); 
+    }
+
     startX = [];
     startY = [];
     moved = false;
@@ -272,18 +219,56 @@ trackpad.addEventListener("touchend", (e) => {
 });
 
 window.addEventListener("orientationchange", sendDimensions);
-window.addEventListener("resize", sendDimensions);
 
-document.addEventListener('DOMContentLoaded', function() {
-    const menuToggle = document.getElementById('menuToggle');
-    const menuPanel = document.getElementById('menuPanel');
-    
-    menuToggle.addEventListener('click', function() {
+window.addEventListener("resize", () => {
+    document.querySelector('.container').style.height = `${window.innerHeight}px`;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.querySelector('#menuToggle');
+    const menuPanel = document.querySelector('#menuPanel');
+    const keyboardButton = document.querySelector('.circle');
+
+    menuToggle.addEventListener('click', () => {
         menuPanel.classList.toggle('active');
     });
-    
-    // Enviar dimensiones cuando se carga la página
-    if (trackpad) {
-        setTimeout(sendDimensions, 500);
-    }
+
+    keyboardButton.addEventListener('click', () => {
+        if (document.body.querySelector('.keyboard-input')) {
+            document.body.querySelector('.keyboard-input').focus();
+            menuPanel.classList.remove('active');
+            return;
+        }
+        let input = document.createElement('input');
+        input.className = 'keyboard-input';
+        input.type = 'text';
+        input.style.position = 'absolute';
+        input.style.opacity = '0';
+        // There is no Ñ de España otherwise :)
+        input.setAttribute('lang', 'es');
+        input.setAttribute('accept-charset', 'UTF-8');
+        document.body.appendChild(input);
+        input.focus();
+        menuPanel.classList.remove('active');
+       
+        input.addEventListener('input', (event) => {
+            const currentValue = event.target.value;
+            if (currentValue.length > 0) {
+                const lastChar = currentValue.slice(-1);
+                socket.emit('keyboard', { key: lastChar });
+            }
+
+            event.target.value = '';
+        });
+
+        input.addEventListener('keydown', (event) => {
+            const { key } = event;
+            if (key === 'Backspace') {
+                socket.emit('keyboard', { key: key.toLowerCase() });
+            }
+            if(key === 'Enter') {
+                socket.emit('keyboard', { key: key.toLowerCase() });
+            }
+        })
+    });
 });
