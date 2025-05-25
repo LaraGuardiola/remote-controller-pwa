@@ -1,4 +1,4 @@
-const wsURL = 'wss://k15pwhppj0xf.share.zrok.io';
+const wsURL = 'wss://192.168.1.35:3443';
 
 let ws = new WebSocket(wsURL);
 const trackpad = document.querySelector(".trackpad");
